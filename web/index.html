@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trợ Lý Giáo Dục - ReAct Agent Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR LEFT: CONTROL & TELEMETRY -->
+        <aside class="sidebar-left">
+            <div class="brand">
+                <span class="brand-icon">🎓</span>
+                <div class="brand-text">
+                    <h1>EduAgent</h1>
+                    <span class="status-online">Online</span>
+                </div>
+            </div>
+
+            <!-- MODE SELECTOR -->
+            <div class="section-card">
+                <h2>CẤU HÌNH HỆ THỐNG</h2>
+                <div class="control-group">
+                    <label for="provider-select">LLM Provider</label>
+                    <select id="provider-select">
+                        <option value="openai">OpenCode Zen Go (Primary)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="model-select">Model Name</label>
+                    <select id="model-select">
+                        <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Phương thức chạy</label>
+                    <div class="radio-toggle-group">
+                        <input type="radio" id="mode-react" name="mode" value="react" checked>
+                        <label for="mode-react">ReAct Agent</label>
+                        
+                        <input type="radio" id="mode-baseline" name="mode" value="baseline">
+                        <label for="mode-baseline">Chatbot</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELEMETRY PANEL -->
+            <div class="section-card telemetry-card">
+                <h2>BẢNG ĐO LƯỜNG TELEMETRY</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Tổng Latency</span>
+                        <span class="metric-value" id="metric-latency">0 ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Tổng Token</span>
+                        <span class="metric-value" id="metric-tokens">0</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Ước tính chi phí</span>
+                        <span class="metric-value" id="metric-cost">$0.00000</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Số bước lặp</span>
+                        <span class="metric-value" id="metric-steps">0</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="telemetry-progress"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CHAT AREA -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="header-info">
+                    <h2>Khung Thảo Luận Thiết Kế Đề Thi</h2>
+                    <p id="chat-sub-title">ReAct Agent Loop Mode (Thought - Action - Observation)</p>
+                </div>
+                <button class="btn-clear" id="btn-clear-chat">Xóa hội thoại</button>
+            </header>
+
+            <div class="chat-messages" id="chat-messages-container">
+                <!-- WELCOME MESSAGE -->
+                <div class="message system-message">
+                    <div class="message-content">
+                        <strong>Chào mừng bạn đến với AI Trợ Lý Giáo Dục!</strong><br>
+                        Hệ thống hỗ trợ tra cứu chương trình của Bộ Giáo dục, truy vấn và tự động cập nhật ngân hàng câu hỏi.<br><br>
+                        <em>Gợi ý yêu cầu nhanh:</em>
+                        <div class="prompt-chips">
+                            <button class="prompt-chip" onclick="usePrompt('Thiết kế đề kiểm tra Toán lớp 12 gồm 3 câu hỏi trắc nghiệm chủ đề \'Hàm số lũy thừa\' (1 Dễ, 2 Trung bình). Ưu tiên lấy từ ngân hàng, nếu thiếu tự sinh mới và lưu.')">Toán 12 - Hàm số lũy thừa</button>
+                            <button class="prompt-chip" onclick="usePrompt('Tạo đề kiểm tra Vật lý lớp 12 gồm 2 câu trắc nghiệm chủ đề \'Dao động cơ\' (1 câu Dễ, 1 câu Trung bình). Hãy lưu câu mới sinh vào ngân hàng.')">Lý 12 - Dao động cơ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT INPUT -->
+            <footer class="chat-input-area">
+                <form id="chat-form" class="chat-input-form">
+                    <textarea id="chat-input" placeholder="Nhập yêu cầu thiết kế đề thi của bạn ở đây..." rows="2" required></textarea>
+                    <button type="submit" class="btn-send" id="btn-submit-chat">
+                        <span class="btn-text">Gửi</span>
+                        <span class="btn-spinner hidden"></span>
+                    </button>
+                </form>
+            </footer>
+        </main>
+
+        <!-- SIDEBAR RIGHT: DATABASE VIEW -->
+        <aside class="sidebar-right">
+            <div class="db-header">
+                <h2>NGÂN HÀNG CÂU HỎI</h2>
+                <span class="badge" id="question-count">0 câu</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="db-search" placeholder="Lọc câu hỏi...">
+            </div>
+            <div class="question-list" id="question-list-container">
+                <!-- Questions dynamically loaded here -->
+            </div>
+        </aside>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

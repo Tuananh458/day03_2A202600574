@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide Thuyết Trình Lab 3 - Nhóm 067</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-blur: blur(20px);
+            --transition-speed: 0.5s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Slide Container */
+        .slider-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            perspective: 1500px;
+        }
+
+        /* Slide Structure */
+        .slide {
+            position: absolute;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            min-height: 550px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.92) translateZ(-100px);
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        /* Active Slide */
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateZ(0);
+            z-index: 10;
+        }
+
+        /* Previous Slide Transition */
+        .slide.prev {
+            transform: translateX(-110%) rotateY(-20deg) scale(0.9);
+            opacity: 0;
+        }
+
+        /* Next Slide Transition */
+        .slide.next {
+            transform: translateX(110%) rotateY(20deg) scale(0.9);
+            opacity: 0;
+        }
+
+        /* Slide Header */
+        .slide-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .slide-title {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .slide-title i {
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+        }
+
+        .slide-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Slide Body Content */
+        .slide-content {
+            flex-grow: 1;
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Left/Right splitting layouts */
+        .col-left, .col-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .full-width {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* UI Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: #ffffff;
+            margin-bottom: 0.8rem;
+        }
+
+        .card-header i {
+            color: var(--accent);
+        }
+
+        .card-body {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Bullet lists */
+        ul.custom-list {
+            list-style: none;
+        }
+
+        ul.custom-list li {
+            position: relative;
+            padding-left: 1.8rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        ul.custom-list li::before {
+            content: "\f058";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        /* Bold items */
+        .highlight-text {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Title Slide Custom Layout */
+        .slide-title-layout {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        .main-hero-title {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #c7d2fe 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .team-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .meta-item i {
+            color: var(--primary);
+        }
+
+        /* Footer Navigation and Progress */
+        .footer-controls {
+            padding: 1rem 3rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .navigation-btns {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 3rem;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* Custom Navigation Menu Side Panel */
+        .menu-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.8rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(25px);
+            border-left: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .side-menu.open {
+            right: 0;
+        }
+
+        .side-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .side-menu-title {
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
+
+        .close-menu {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .close-menu:hover {
+            color: #ffffff;
+        }
+
+        .slide-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .slide-list-item {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .slide-list-item:hover, .slide-list-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #ffffff;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Sequence diagram mock */
+        .diagram-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .diag-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .diag-actor {
+            background: var(--primary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .diag-msg {
+            color: var(--text-muted);
+        }
+
+        .diag-arrow {
+            color: var(--accent);
+        }
+
+        /* Telemetry Dashboard Widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .widget {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .widget:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+        }
+
+        .widget::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+
+        .widget.accent::before {
+            background: var(--accent);
+        }
+
+        .widget.warn::before {
+            background: var(--warn);
+        }
+
+        .widget.danger::before {
+            background: var(--danger);
+        }
+
+        .widget-val {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #ffffff 40%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .widget-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .widget-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .widget.accent .widget-icon { color: var(--accent); }
+        .widget.warn .widget-icon { color: var(--warn); }
+        .widget.danger .widget-icon { color: var(--danger); }
+
+        /* Tables styling */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .styled-table th {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .styled-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .styled-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Code highlight */
+        .code-container {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            color: #a5b4fc;
+            line-height: 1.5;
+            max-height: 250px;
+        }
+
+        /* Keyboard Shortcut hints */
+        .shortcuts-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .shortcut-key {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-family: monospace;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 30px rgba(16, 185, 129, 0.3);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .slide-content {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDE PANEL MENU -->
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <h3 class="side-menu-title">Danh sách Slide</h3>
+            <button class="close-menu" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="slide-list" id="slideList">
+            <!-- Dynamic Inject -->
+        </ul>
+    </div>
+
+    <!-- MAIN SLIDER CONTAINER -->
+    <div class="slider-container" id="sliderContainer">
+        
+        <!-- SLIDE 0: TITLE -->
+        <div class="slide active" data-index="0">
+            <div class="slide-content slide-title-layout">
+                <i class="fa-solid fa-graduation-cap" style="font-size: 4.5rem; color: var(--primary); margin-bottom: 1.5rem; filter: drop-shadow(0 0 15px var(--primary-glow));"></i>
+                <h1 class="main-hero-title">AI Trợ Lý Thiết Kế Đề Kiểm Tra &<br>Quản Lý Ngân Hàng Câu Hỏi</h1>
+                <p class="hero-subtitle">Giải pháp ReAct Agent chuyên sâu theo chương trình chuẩn Bộ GD&ĐT</p>
+                
+                <div class="team-meta">
+                    <div class="meta-item">
+                        <i class="fa-solid fa-users"></i>
+                        <span><strong>Nhóm:</strong> 067</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <span>Hoàng Kim Tuấn Anh, Nguyễn Hưng Nguyên, Nguyễn Minh Anh</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>01/06/2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 1: GIỚI THIỆU & BỐI CẢNH -->
+        <div class="slide" data-index="1">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-lightbulb"></i> Bối Cảnh & Đặt Vấn Đề</h2>
+                <span class="slide-subtitle">01 / Vấn Đề</span>
+            </div>
+            <div class="slide-content">
+                <div class="col-left">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-circle-exclamation" style="color: var(--danger);"></i>
+                            Hạn Chế Của LLM Chatbot
+                        </div>
+                        <div class="card-body">
+                            Chatbot thông thường hoạt động theo <strong>phản xạ nhanh (System 1)</strong>. Khi được yêu cầu thiết kế đề thi hoặc quản lý ngân hàng câu hỏi:
+                            <ul class="custom-list" style="margin-top: 0.8rem;">
+                                <li>Dễ bị <span class="highlight-text">ảo tưởng kiến thức (Hallucination)</span>, tự bịa ra đề thi.</li>
+                                <li>Không có khả năng tương tác với cơ sở dữ liệu thực.</li>
+                                <li>Không thể lưu lại câu hỏi giáo viên thiết kế mới.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent);"></i>
+                            Giải Pháp: ReAct Agent
+                        </div>
+                        <div class="card-body">
+                            Ứng dụng mô hình <strong>tư duy chậm (System 2)</strong> kết hợp lập luận và hành động (Reasoning + Acting):
+                            <ul class="custom-list" style="margin-top: 0.8rem;">
+                                <li>Bắt buộc suy nghĩ <span class="highlight-text">Thought</span> từng bước rõ ràng.</li>
+                                <li>Chủ động gọi các công cụ thực tế <span class="highlight-text">Action</span>.</li>
+                                <li>Tự sửa sai thông qua kết quả phản hồi từ môi trường <span class="highlight-text">Observation</span>.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: KIẾN TRÚC HỆ THỐNG REACT LOOP -->
+        <div class="slide" data-index="2">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-diagram-project"></i> Kiến Trúc ReAct Loop</h2>
+                <span class="slide-subtitle">02 / Kiến trúc</span>
+            </div>
+            <div class="slide-content">
+                <div class="col-left" style="flex: 1.2;">
+                    <div class="glass-card" style="padding: 1rem;">
+                        <div class="card-header">
+                            <i class="fa-solid fa-network-wired"></i> Quy Trình Tương Tác Các Tác Tử
+                        </div>
+                        <div class="diagram-container">
+                            <div class="diag-step">
+                                <span class="diag-actor">Teacher</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Yêu cầu tạo đề thi Toán 12 (1 Dễ, 2 Trung bình)</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Agent</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Thought: Tra cứu chương trình học Toán lớp 12</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Agent</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Action: get_curriculum_topics(12, "Toán")</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Tools</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Observation: ["Hàm số lũy thừa", "Khối đa diện"...]</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Agent</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Thought: Tìm câu hỏi. Gọi fetch_questions_from_bank(...)</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Agent</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Action: save_question_to_bank(...) (Tự sinh khi thiếu)</span>
+                            </div>
+                            <div class="diag-step">
+                                <span class="diag-actor">Agent</span>
+                                <span class="diag-arrow">&rArr;</span>
+                                <span class="diag-msg">Final Answer: Đề thi hoàn chỉnh kèm LaTeX & đáp án</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right" style="flex: 0.8;">
+                    <div class="glass-card">
+                        <div class="card-header"><i class="fa-solid fa-code"></i> Cơ Chế Dừng (Stop Sequence)</div>
+                        <div class="card-body">
+                            Sử dụng cấu hình <span class="highlight-text">stop=["Observation:", "observation:"]</span>.
+                            <br><br>
+                            Giúp ngắt dòng sinh của LLM ngay khi vừa xuất lệnh gọi Tool, chặn đứng lỗi ảo tưởng kết quả công cụ và nhường quyền kiểm soát tuyệt đối cho Python loop thực thi.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: DANH SÁCH CÔNG CỤ (TOOL INVENTORY) -->
+        <div class="slide" data-index="3">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-toolbox"></i> Kho Công Cụ Hỗ Trợ (Tools)</h2>
+                <span class="slide-subtitle">03 / Công cụ</span>
+            </div>
+            <div class="slide-content">
+                <div class="full-width">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Tên Công Cụ</th>
+                                <th>Đầu Vào (Arguments)</th>
+                                <th>Chức Năng Chính / Vai Trò</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-text"><i class="fa-solid fa-book-open" style="color: var(--primary); margin-right: 8px;"></i> get_curriculum_topics</td>
+                                <td><code>grade (int)</code>, <code>subject (str)</code></td>
+                                <td>Tra cứu danh sách chủ đề chính thức theo chương trình Bộ GD&ĐT (Toán, Lý lớp 10, 11, 12). Bảo đảm Agent chọn đúng trọng tâm.</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-text"><i class="fa-solid fa-database" style="color: var(--accent); margin-right: 8px;"></i> fetch_questions_from_bank</td>
+                                <td><code>topic (str)</code>, <code>difficulty (str)</code>, <code>num_questions (int)</code></td>
+                                <td>Truy vấn ngân hàng câu hỏi có sẵn từ tệp tin JSON cơ sở dữ liệu. Tiết kiệm tài nguyên và giữ tính nhất quán.</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-text"><i class="fa-solid fa-floppy-disk" style="color: var(--warn); margin-right: 8px;"></i> save_question_to_bank</td>
+                                <td><code>question_text</code>, <code>options</code>, <code>correct_answer</code>, <code>explanation</code>, <code>difficulty</code>, <code>topic</code>...</td>
+                                <td>Tự động ghi nhận câu hỏi mới thiết kế chuẩn sư phạm vào ngân hàng lưu trữ dữ liệu để sử dụng cho lần sau.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: GIẢI PHÁP CÔNG NGHỆ ĐỘT PHÁ -->
+        <div class="slide" data-index="4">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-microchip"></i> Giải Pháp Công Nghệ Đột Phá</h2>
+                <span class="slide-subtitle">04 / Giải pháp</span>
+            </div>
+            <div class="slide-content">
+                <div class="col-left">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-brackets-curly" style="color: var(--accent);"></i>
+                            Thuật Toán Khớp Ngoặc Động (Character Scan)
+                        </div>
+                        <div class="card-body">
+                            Hàm <code>_find_action_call</code> tự phát triển thay thế Regex cổ điển:
+                            <ul class="custom-list" style="margin-top: 0.5rem;">
+                                <li>Duyệt từng ký tự, ghi nhớ trạng thái chuỗi đóng/mở nháy.</li>
+                                <li>Bỏ qua các ký tự ngoặc toán học lồng nhau bên trong biểu thức LaTeX như: <code>y = (x^2 - 4)^0.5</code>.</li>
+                                <li>Tránh 100% các lỗi trích xuất thiếu tham số gây crash Agent.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-server" style="color: var(--primary);"></i>
+                            Tương Thích Mọi Endpoint & Fallback DeepSeek
+                        </div>
+                        <div class="card-body">
+                            Bộ điều khiển <code>openai_provider.py</code>:
+                            <ul class="custom-list" style="margin-top: 0.5rem;">
+                                <li>Hỗ trợ đổi endpoint động qua cấu hình <code>LLM_ENDPOINT</code> (OpenRouter, OpenCode Zen Go).</li>
+                                <li>Nhận diện luồng suy luận DeepSeek (trích xuất <code>reasoning_content</code> làm dự phòng khi nội dung text trống).</li>
+                                <li>Giới hạn <code>max_tokens</code> an toàn tránh lỗi Quota.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: THỐNG KÊ HIỆU NĂNG TELEMETRY -->
+        <div class="slide" data-index="5">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-chart-line"></i> Dashboard Giám Sát Hiệu Năng</h2>
+                <span class="slide-subtitle">05 / Hiệu năng</span>
+            </div>
+            <div class="slide-content">
+                <div class="full-width">
+                    <div class="dashboard-grid">
+                        <div class="widget">
+                            <div class="widget-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                            <div class="widget-val">2.94s</div>
+                            <div class="widget-label">Latency per step (P50)</div>
+                        </div>
+                        <div class="widget accent">
+                            <div class="widget-icon"><i class="fa-solid fa-bolt"></i></div>
+                            <div class="widget-val">14.71s</div>
+                            <div class="widget-label">Tổng thời gian xử lý</div>
+                        </div>
+                        <div class="widget warn">
+                            <div class="widget-icon"><i class="fa-solid fa-coins"></i></div>
+                            <div class="widget-val">11,468</div>
+                            <div class="widget-label">Tổng Tokens tiêu thụ</div>
+                        </div>
+                        <div class="widget danger">
+                            <div class="widget-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                            <div class="widget-val">$0.114</div>
+                            <div class="widget-label">Tổng chi phí ước tính</div>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="margin-top: 1.2rem; padding: 1.2rem;">
+                        <div class="card-body" style="text-align: center; font-size: 0.95rem;">
+                            <i class="fa-solid fa-circle-info" style="color: var(--primary); margin-right: 8px;"></i>
+                            Toàn bộ dữ liệu hiệu năng được tự động đo lường và kết xuất thông qua lớp <strong>Telemetry Tracker</strong>, đảm bảo tính minh bạch, nhất quán và sẵn sàng phân tích trong sản xuất.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: CHATBOT BASELINE VS REACT AGENT -->
+        <div class="slide" data-index="6">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-balance-scale"></i> Chatbot Baseline vs ReAct Agent</h2>
+                <span class="slide-subtitle">06 / Thử nghiệm</span>
+            </div>
+            <div class="slide-content">
+                <div class="full-width">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Kịch Bản Thử Nghiệm</th>
+                                <th>Kết Quả Chatbot Baseline</th>
+                                <th>Kết Quả ReAct Agent</th>
+                                <th>Người Chiến Thắng</th>
+                                <th>Giải Thích Chi Tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-text">Q1: Tra cứu thông tin phổ thông</td>
+                                <td>Đúng, rất nhanh (1.5s)</td>
+                                <td>Đúng, tốn thêm 1 bước ReAct</td>
+                                <td><span class="badge success">Chatbot</span></td>
+                                <td>Với các câu hỏi hội thoại thông thường, Chatbot tối ưu hóa độ trễ và số token vượt trội.</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-text">Q2: Tích hợp và lưu trữ cơ sở dữ liệu</td>
+                                <td style="color: var(--danger);">Thất bại. Ảo tưởng câu hỏi và không thể lưu.</td>
+                                <td>Thành công bốc đề, thiết kế câu hỏi thiếu và lưu vào JSON.</td>
+                                <td><span class="badge success">ReAct Agent</span></td>
+                                <td>Agent có khả năng lập luận đa bước (System 2) kết nối trực tiếp với công cụ để thay đổi trạng thái database thực tế.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: HƯỚNG PHÁT TRIỂN & PRODUCTION-READINESS -->
+        <div class="slide" data-index="7">
+            <div class="slide-header">
+                <h2 class="slide-title"><i class="fa-solid fa-rocket"></i> Hướng Đi Tương Lai & Đưa Vào Sản Xuất</h2>
+                <span class="slide-subtitle">07 / Phát triển</span>
+            </div>
+            <div class="slide-content">
+                <div class="col-left">
+                    <div class="glass-card">
+                        <div class="card-header"><i class="fa-solid fa-shield-halved" style="color: var(--warn);"></i> An Toàn & Bảo Mật</div>
+                        <div class="card-body">
+                            <ul class="custom-list">
+                                <li><strong>Input Sanitization:</strong> Làm sạch câu lệnh của giáo viên để phòng chống tấn công Prompt Injection làm sai lệch database câu hỏi.</li>
+                                <li><strong>Safety Guardrails:</strong> Thiết lập bộ lọc nội dung sư phạm nhạy cảm trước khi lưu câu hỏi mới.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <div class="glass-card">
+                        <div class="card-header"><i class="fa-solid fa-arrow-up-right-dots" style="color: var(--accent);"></i> Nâng Cấp Hệ Thống</div>
+                        <div class="card-body">
+                            <ul class="custom-list">
+                                <li><strong>Vector Database:</strong> Thay thế file JSON bằng VectorDB (ChromaDB/Pinecone) để hỗ trợ tìm kiếm ngữ nghĩa thông minh (Semantic Search).</li>
+                                <li><strong>Multi-Agent (LangGraph):</strong> Phân rã thành Agent Thiết kế đề và Agent Giáo viên Phản biện chất lượng đề trước khi đồng bộ.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: KẾT LUẬN & Q&A -->
+        <div class="slide" data-index="8">
+            <div class="slide-content slide-title-layout">
+                <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: var(--accent); margin-bottom: 2rem; filter: drop-shadow(0 0 15px var(--accent-glow));"></i>
+                <h1 class="main-hero-title" style="font-size: 4rem; background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">XIN CẢM ƠN THẦY CÔ & CÁC BẠN</h1>
+                <p class="hero-subtitle" style="font-size: 1.5rem; margin-bottom: 3rem;">Hệ Thống Đã Sẵn Sàng Vận Hành - Chúc Buổi Thuyết Trình Thành Công Rực Rỡ!</p>
+                
+                <div style="display: flex; gap: 1.5rem; justify-content: center;">
+                    <div class="meta-item" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.8rem 2rem; border-radius: 30px;">
+                        <i class="fa-solid fa-comments-question" style="color: var(--accent);"></i>
+                        <span><strong>Q&A Session</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER CONTROLS -->
+    <div class="footer-controls">
+        <div class="shortcuts-hint">
+            <span>Dùng phím <span class="shortcut-key">&larr;</span> và <span class="shortcut-key">&rarr;</span> hoặc <span class="shortcut-key">Space</span> để chuyển Slide</span>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="navigation-btns">
+            <button class="menu-toggle" id="menuToggleBtn" title="Mở danh sách slide"><i class="fas fa-bars"></i></button>
+            <button class="nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Trước</button>
+            <button class="nav-btn" id="nextBtn">Sau <i class="fas fa-chevron-right"></i></button>
+            <div class="slide-counter" id="slideCounter">1 / 9</div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const slideCounter = document.getElementById('slideCounter');
+            const progressBar = document.getElementById('progressBar');
+            const menuToggleBtn = document.getElementById('menuToggleBtn');
+            const closeMenuBtn = document.getElementById('closeMenuBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            const slideList = document.getElementById('slideList');
+            
+            let currentSlideIndex = 0;
+            const totalSlides = slides.length;
+
+            // Generate Side Menu Items
+            slides.forEach((slide, index) => {
+                let title = 'Tiêu đề';
+                const titleEl = slide.querySelector('.slide-title');
+                if (titleEl) {
+                    title = titleEl.textContent.trim();
+                } else if (index === 0) {
+                    title = 'Slide Mở Đầu';
+                } else if (index === totalSlides - 1) {
+                    title = 'Lời Cảm Ơn';
+                }
+                
+                const li = document.createElement('li');
+                li.className = `slide-list-item ${index === 0 ? 'active' : ''}`;
+                li.innerHTML = `<span style="font-weight:600;">Slide ${index}:</span> ${title}`;
+                li.dataset.index = index;
+                li.addEventListener('click', () => {
+                    goToSlide(index);
+                    sideMenu.classList.remove('open');
+                });
+                slideList.appendChild(li);
+            });
+
+            const slideListItems = document.querySelectorAll('.slide-list-item');
+
+            function updateSlideState() {
+                slides.forEach((slide, index) => {
+                    slide.classList.remove('active', 'prev', 'next');
+                    if (index === currentSlideIndex) {
+                        slide.classList.add('active');
+                    } else if (index < currentSlideIndex) {
+                        slide.classList.add('prev');
+                    } else {
+                        slide.classList.add('next');
+                    }
+                });
+
+                // Update controls
+                prevBtn.disabled = currentSlideIndex === 0;
+                nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+                
+                // Update counter & progress bar
+                slideCounter.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+                const progressPercentage = ((currentSlideIndex) / (totalSlides - 1)) * 100;
+                progressBar.style.width = `${progressPercentage}%`;
+
+                // Update side menu active state
+                slideListItems.forEach((item, index) => {
+                    item.classList.toggle('active', index === currentSlideIndex);
+                });
+            }
+
+            function goToSlide(index) {
+                if (index >= 0 && index < totalSlides) {
+                    currentSlideIndex = index;
+                    updateSlideState();
+                }
+            }
+
+            function nextSlide() {
+                if (currentSlideIndex < totalSlides - 1) {
+                    currentSlideIndex++;
+                    updateSlideState();
+                }
+            }
+
+            function prevSlide() {
+                if (currentSlideIndex > 0) {
+                    currentSlideIndex--;
+                    updateSlideState();
+                }
+            }
+
+            // Click events
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+
+            // Side Menu controls
+            menuToggleBtn.addEventListener('click', () => {
+                sideMenu.classList.add('open');
+            });
+
+            closeMenuBtn.addEventListener('click', () => {
+                sideMenu.classList.remove('open');
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    prevSlide();
+                } else if (e.key === 'Escape') {
+                    sideMenu.classList.remove('open');
+                }
+            });
+
+            // Swipe navigation for mobile
+            let startX = 0;
+            document.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            });
+
+            document.addEventListener('touchend', (e) => {
+                const endX = e.changedTouches[0].clientX;
+                const diffX = startX - endX;
+                if (Math.abs(diffX) > 50) {
+                    if (diffX > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                }
+            });
+
+            // Initial view update
+            updateSlideState();
+        });
+    </script>
+</body>
+</html>

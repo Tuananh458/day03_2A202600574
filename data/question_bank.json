@@ -1,0 +1,82 @@
+[
+  {
+    "id": "Q001",
+    "grade": 12,
+    "subject": "Toán",
+    "topic": "Hàm số lũy thừa",
+    "difficulty": "Easy",
+    "question_text": "Tìm tập xác định D của hàm số y = (x - 1)^(-3).",
+    "options": [
+      "A. D = R",
+      "B. D = R \\ {1}",
+      "C. D = (1, +inf)",
+      "D. D = (-inf, 1)"
+    ],
+    "correct_answer": "B",
+    "explanation": "Hàm số lũy thừa với số mũ nguyên âm (-3) xác định khi và chỉ khi cơ số khác 0. Do đó x - 1 != 0 => x != 1. Tập xác định D = R \\ {1}."
+  },
+  {
+    "id": "Q002",
+    "grade": 12,
+    "subject": "Toán",
+    "topic": "Hàm số lũy thừa",
+    "difficulty": "Medium",
+    "question_text": "Tính đạo hàm của hàm số y = x^(sqrt(2)) tại điểm x = 1.",
+    "options": [
+      "A. y'(1) = sqrt(2)",
+      "B. y'(1) = 1",
+      "C. y'(1) = 0",
+      "D. y'(1) = sqrt(2) * ln(2)"
+    ],
+    "correct_answer": "A",
+    "explanation": "Đạo hàm của hàm số y = x^a là y' = a * x^(a - 1). Với y = x^(sqrt(2)), ta có y' = sqrt(2) * x^(sqrt(2) - 1). Tại x = 1, y'(1) = sqrt(2) * 1^(sqrt(2) - 1) = sqrt(2)."
+  },
+  {
+    "id": "Q003",
+    "grade": 12,
+    "subject": "Toán",
+    "topic": "Hàm số lũy thừa",
+    "difficulty": "Medium",
+    "question_text": "Tính đạo hàm của hàm số y = (2x - 1)^π tại x = 1.",
+    "options": [
+      "A. 2π",
+      "B. π",
+      "C. π * 2^(π)",
+      "D. 2π * 2^(π - 1)"
+    ],
+    "correct_answer": "A",
+    "explanation": "Áp dụng công thức đạo hàm: y' = π * (2x - 1)^(π - 1) * (2x - 1)' = π * (2x - 1)^(π - 1) * 2 = 2π * (2x - 1)^(π - 1). Tại x = 1, (2*1 - 1) = 1, nên y'(1) = 2π * 1^(π - 1) = 2π."
+  },
+  {
+    "id": "Q004",
+    "grade": 12,
+    "subject": "Vật lý",
+    "topic": "Đồ thị hàm số",
+    "difficulty": "Easy",
+    "question_text": "Một vật dao động điều hòa có đồ thị li độ theo thời gian là một đường hình cos. Dạng đồ thị đó mô tả:",
+    "options": [
+      "A. Hàm số bậc nhất",
+      "B. Hàm số cos",
+      "C. Hàm số bậc hai",
+      "D. Hàm số sin"
+    ],
+    "correct_answer": "B",
+    "explanation": "Dao động điều hòa có li độ biến thiên điều hòa theo hàm cos hoặc sin, đồ thị có dạng hình sin/cos."
+  },
+  {
+    "id": "Q005",
+    "grade": 12,
+    "subject": "Vật lý",
+    "topic": "Đồ thị hàm số",
+    "difficulty": "Medium",
+    "question_text": "Trong dao động điều hòa, đồ thị biểu diễn sự phụ thuộc của lực kéo về vào li độ có dạng",
+    "options": [
+      "A. Đường thẳng đi qua gốc tọa độ",
+      "B. Đường cong hình sin",
+      "C. Đường elip",
+      "D. Đường hypebol"
+    ],
+    "correct_answer": "A",
+    "explanation": "Vì lực kéo về liên hệ với li độ theo công thức F = -kx, đồ thị là đường thẳng đi qua gốc tọa độ với hệ số góc -k."
+  }
+]
