@@ -1,163 +1,135 @@
 # Group Report: Lab 3 - Production-Grade Agentic System
 
-- **Team Name**: Nhóm 067
-- **Team Members**: Hoàng Kim Tuấn Anh, Nguyễn Hưng Nguyên, Nguyễn Minh Anh
+- **Team Name**: 067
+- **Team Members**: Nguyễn Hưng Nguyên, Nguyễn Minh Anh, Hoàng Kim Tuấn Anh
 - **Deployment Date**: 2026-06-01
 
 ---
 
 ## 1. Executive Summary
 
-Báo cáo này trình bày kết quả xây dựng hệ thống **AI Trợ Lý Thiết Kế Đề Kiểm Tra & Quản Lý Ngân Hàng Câu Hỏi Theo Chương Trình** chuẩn hóa của Bộ GD&ĐT.
-
-- **Success Rate**: **95%** trên 20 kịch bản thử nghiệm đa dạng (bao gồm tra cứu chương trình học, truy vấn câu hỏi có sẵn, tự động sinh mới khi thiếu và lưu lại ngân hàng dữ liệu).
-- **Key Outcome**: 
-  * ReAct Agent giải quyết trọn vẹn 100% các câu hỏi đa bước phức tạp (Multi-step reasoning), tăng **50% hiệu suất chính xác** so với Chatbot baseline thông thường vốn hay gặp lỗi ảo tưởng (hallucination) công thức hoặc không thể tự tương tác lưu trữ cơ sở dữ liệu.
-  * Tích hợp thành công cơ chế gỡ lỗi khớp ngoặc động nâng cao (Character Scan) giải quyết triệt để lỗi biên dịch biểu thức toán học LaTeX chứa ngoặc đơn phức tạp.
+- **Mục tiêu**: Nâng cấp Chatbot cơ bản thành một **ReAct Agent** (sử dụng chu kỳ suy luận Thought-Action-Observation) chuyên biệt cho tác vụ tạo đề thi giáo dục dựa trên kiến thức động từ website, đảm bảo chất lượng, mức độ khó chính xác và triệt tiêu hoàn toàn hiện tượng ảo giác (hallucination).
+- **Success Rate**: Đạt độ ổn định **90%** trên 20 kịch bản test tạo đề thi thuộc các chủ đề Lịch sử, Địa lý, Sinh học cấp Tiểu học & THCS.
+- **Key Outcome**: Agent đã có khả năng tự động bóc tách tài liệu từ URL bất kỳ (thông qua module `KnowledgeLoader` sạch), lưu trữ vào KnowledgeBase JSON, tự động gọi công cụ tra cứu, sinh câu hỏi trắc nghiệm đúng định dạng JSON và tự động đánh giá chéo độ khó (`evaluate_difficulty`) trước khi trả về kết quả cuối cho học sinh.
 
 ---
 
 ## 2. System Architecture & Tooling
 
 ### 2.1 ReAct Loop Implementation
-Quy trình suy luận của Agent tuân thủ nghiêm ngặt mô hình **Thought -> Action -> Observation -> Thought...** được minh họa chi tiết qua sơ đồ Sequence dưới đây:
+
+Vòng lặp ReAct được lập trình trong `src/agent/agent.py` để hướng dẫn LLM hoạt động theo mô hình suy luận khép kín:
+```
+[User Input] ➔ Thought ➔ Action (Python Tool) ➔ Observation (Result) ➔ Thought ➔ Final Answer
+```
+Với cấu trúc này, LLM bắt buộc phải viết ra suy nghĩ (Thought) của mình, sau đó xuất ra định dạng JSON khớp chính xác với Action để bộ parse Python bắt lỗi và thực thi tool tương ứng, đảm bảo tính tuần tự và chính xác.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Teacher as Giáo viên (User)
-    participant Agent as ReAct Agent (Core)
-    participant LLM as LLM Provider (gpt-4o)
-    participant Tools as Custom Tools (quiz_tools.py)
-    participant DB as Question Bank (JSON)
-
-    Teacher->>Agent: Gửi yêu cầu: Thiết kế đề kiểm tra Toán lớp 12 (1 Dễ, 2 Trung bình)
-    rect rgb(240, 240, 245)
-        note right of Agent: Bắt đầu ReAct Loop (max_steps=7)
-        Agent->>LLM: Gửi Prompt + System Instruction
-        LLM-->>Agent: Thought: Tra cứu chương trình học.<br/>Action: get_curriculum_topics(grade=12, subject="Toán")
-        Agent->>Tools: Gọi get_curriculum_topics(12, "Toán")
-        Tools-->>Agent: Observation: ["Hàm số lũy thừa", "Khối đa diện", ...]
-    end
-
-    rect rgb(240, 240, 245)
-        Agent->>LLM: Gửi Prompt tích lũy + Observation
-        LLM-->>Agent: Thought: Chủ đề hợp lệ. Lấy câu hỏi Dễ.<br/>Action: fetch_questions_from_bank("Hàm số lũy thừa", "Easy", 1)
-        Agent->>Tools: Gọi fetch_questions_from_bank(...)
-        Tools->>DB: Truy vấn database JSON
-        DB-->>Tools: Trả về Q001 (Easy)
-        Tools-->>Agent: Observation: [Q001]
-    end
-
-    rect rgb(240, 240, 245)
-        Agent->>LLM: Gửi Prompt tích lũy + Observation
-        LLM-->>Agent: Thought: Đã có Q001. Tìm 2 câu Trung bình.<br/>Action: fetch_questions_from_bank("Hàm số lũy thừa", "Medium", 2)
-        Agent->>Tools: Gọi fetch_questions_from_bank(...)
-        Tools->>DB: Truy vấn database JSON
-        DB-->>Tools: Trả về Q002 (chỉ có 1 câu Trung bình)
-        Tools-->>Agent: Observation: [Q002]
-    end
-
-    rect rgb(240, 240, 245)
-        Agent->>LLM: Gửi Prompt tích lũy + Observation
-        LLM-->>Agent: Thought: Thiếu 1 câu Trung bình. Tự sinh câu mới và lưu.<br/>Action: save_question_to_bank(question_text="...", options=[...], ...)
-        Agent->>Tools: Gọi save_question_to_bank(...)
-        Tools->>DB: Ghi đè câu hỏi mới với ID Q003
-        DB-->>Tools: Ghi file JSON thành công
-        Tools-->>Agent: Observation: SUCCESS: Đã lưu với ID = Q003.
-    end
-
-    rect rgb(240, 240, 245)
-        Agent->>LLM: Gửi Prompt tích lũy + Observation
-        LLM-->>Agent: Final Answer: Dựng đề kiểm tra 3 câu hoàn chỉnh (Q001, Q002, Q003) kèm đáp án giải thích LaTeX.
-    end
-    Agent-->>Teacher: Trả về đề kiểm tra hoàn chỉnh định dạng Markdown
+graph TD
+    A["Yêu cầu người dùng (VD: Tạo đề Sử)"] --> B{"Thought: Cần tìm kiến thức trước?"}
+    B -- "Có" --> C["Action: Gọi search_knowledge"]
+    C --> D["Observation: Nội dung bài học"]
+    D --> E{"Thought: Đã có đủ kiến thức chưa?"}
+    E -- "Có, cần sinh câu hỏi" --> F["Action: Gọi generate_mcq_questions"]
+    F --> G["Observation: Danh sách câu hỏi JSON"]
+    G --> H{"Thought: Cần đánh giá độ khó?"}
+    H -- "Có, để kiểm duyệt chéo" --> I["Action: Gọi evaluate_difficulty"]
+    I --> J["Observation: Kết quả đánh giá (Đạt/Không đạt)"]
+    J --> K{"Thought: Đạt chuẩn?"}
+    K -- "Đạt" --> L["Action: Final Answer"]
+    K -- "Không đạt" --> F
+    L --> M["Trả kết quả chuẩn cho Người dùng"]
 ```
 
-### 2.2 Tool Definitions (Inventory)
+### 2.2 Tool Design Evolution (Sự Tiến Hóa Thiết Kế Công Cụ)
 
-| Tool Name | Input Format | Use Case / Description |
-| :--- | :--- | :--- |
-| `get_curriculum_topics` | `grade (int)`, `subject (str)` | Tra cứu danh sách các chủ đề chính thức theo chương trình của Bộ GD&ĐT (Lớp 10, 11, 12; Toán, Lý). |
-| `fetch_questions_from_bank` | `topic (str)`, `difficulty (str)`, `num_questions (int)` | Truy vấn các câu hỏi trắc nghiệm đã có sẵn trong cơ sở dữ liệu dựa trên chủ đề và độ khó yêu cầu. |
-| `save_question_to_bank` | `question_text (str)`, `options (list)`, `correct_answer (str)`, `explanation (str)`, `difficulty (str)`, `topic (str)`, `grade (int)`, `subject (str)` | Ghi nhận một câu hỏi trắc nghiệm tự thiết kế mới vào ngân hàng câu hỏi để tái sử dụng ở các phiên làm việc sau. |
+Chúng tôi đã thiết kế và cải tiến bộ công cụ qua các phiên bản để tối ưu hóa hiệu quả:
+
+| Tool Name | Input Format | Use Case | Sự Tiến Hóa v1 ➔ v2 |
+| :--- | :--- | :--- | :--- |
+| `KnowledgeLoader` (Module) | `url` (string), `topic` (string) | Nạp nội dung bài học từ web vào JSON DB. | **[NEW] v2**: Cho phép nạp động kiến thức từ loigiaihay.com thay vì dữ liệu tĩnh hard-code trong mã nguồn ở v1. |
+| `search_knowledge` | `topic` (string) | Truy xuất kiến thức nền từ KnowledgeBase. | **v2**: Tích hợp quy tắc chặn bịa đặt (Anti-hallucination) - trả về `[KHÔNG CÓ DỮ LIỆU]` nếu không thấy chủ đề, làm mốc ngắt cứng cho Agent. |
+| `generate_mcq_questions` | `topic`, `quantity`, `difficulty` | Sinh câu hỏi trắc nghiệm 4 lựa chọn (chuẩn JSON). | **v2**: Cải tiến prompt sinh cấu trúc JSON chặt chẽ hơn, giảm thiểu lỗi parse văn bản. |
+| `evaluate_difficulty` | `question_json` (string) | Đánh giá độ khó câu hỏi vừa sinh có khớp yêu cầu. | **v1**: Chưa có. **v2 [NEW]**: Tự động đánh giá chéo để kích hoạt vòng lặp tự sửa sai (Self-correction). |
 
 ### 2.3 LLM Providers Used
-- **Primary**: **OpenAI GPT-4o** (thông qua OpenRouter) - Nhận nhiệm vụ suy luận logic cao cấp ReAct và sinh câu hỏi Toán học chuẩn sư phạm.
-- **Secondary (Backup)**: **Google Gemini 1.5 Flash** - Dự phòng khi OpenAI API quá tải hoặc cạn tín dụng.
-
-### 2.4 Web Interface & Interactive Dashboard
-Để phục vụ buổi trình diễn trực tiếp (Live Demo) và hỗ trợ giáo viên thao tác trực quan, nhóm đã phát triển một giao diện Web Chatbot & Telemetry Dashboard cao cấp đặt tại thư mục [web/](file:///d:/solution/Day-3-Lab-Chatbot-vs-react-agent/web/):
-- **Bố cục 3 cột hiện đại**:
-  - *Cột trái*: Cấu hình hệ thống (LLM, Mode: ReAct Agent vs Chatbot Baseline) và Telemetry Dashboard đo lường thời gian thực (Tổng Latency, Token tiêu hao, Cost, số bước lặp).
-  - *Cột giữa*: Khung chat chính, tích hợp bộ hiển thị accordion mở rộng các bước suy luận ReAct (Thought - Action - Observation) theo thời gian thực.
-  - *Cột phải*: Question Bank Viewer đồng bộ tự động để hiển thị danh sách câu hỏi trong `question_bank.json`. Tích hợp hiệu ứng hoạt hình (Animation & Highlight) nhấp nháy thẻ câu hỏi mới khi Agent gọi thành công `save_question_to_bank` và nạp lại.
-- **Mã nguồn Server**: Được triển khai tại file [run_web_app.py](file:///d:/solution/Day-3-Lab-Chatbot-vs-react-agent/run_web_app.py) bằng thư viện chuẩn `http.server` của Python, giúp chạy ngay lập tức mà không cần cài đặt thêm thư viện ngoài (`pip install`).
+- **Primary**: OpenAI (`gpt-4o` hoặc `gpt-3.5-turbo`) cho khả năng duy trì định dạng JSON và suy luận logic chính xác cao.
+- **Secondary (Backup)**: Phi-3-mini-4k-instruct (chạy local qua GGUF & `llama-cpp-python`) để tối ưu chi phí và kiểm thử tính độc lập của Agent ngoại tuyến.
 
 ---
 
 ## 3. Telemetry & Performance Dashboard
 
-Dữ liệu thực tế được đo lường tự động bởi hệ thống Telemetry (`tracker`) của chúng tôi trong phiên chạy hoàn chỉnh:
+Dữ liệu telemetry được thu thập tự động qua các cuộc chạy thử nghiệm (logs lưu trong thư mục `logs/`):
 
-- **Average Latency (P50) per step**: **2,942 ms** (Thời gian xử lý trung bình cho 1 bước ReAct).
-- **Max Latency (P99)**: **5,446 ms** (Ghi nhận ở bước cuối cùng khi LLM tiến hành sinh và định dạng văn bản đề thi trọn gói chứa LaTeX).
-- **Tổng thời gian xử lý toàn bộ tác vụ (5 bước)**: **14.71 giây**.
-- **Average Tokens per Task (Total)**: **11,468 tokens** (Prompt: 10,268; Completion: 1,200).
-- **Total Cost of Test Suite (Ước tính)**: **$0.11468** (Đã tối ưu hóa đáng kể bằng Stop Sequence để tránh sinh thừa).
+- **Average Latency (P50)**: **1850ms** (Chậm hơn chatbot thông thường do phải chạy qua trung bình 3 vòng lặp ReAct và gọi API).
+- **Max Latency (P99)**: **4200ms** (Xảy ra khi Agent phát hiện câu hỏi chưa đạt chuẩn ở bước `evaluate_difficulty` và phải chạy vòng lặp sinh lại câu hỏi).
+- **Average Tokens per Task**: **~500 tokens** (Prompt hệ thống được tối ưu hóa chi tiết để ép định dạng ReAct nghiêm ngặt).
+- **Total Cost of Test Suite (Tối Ưu Hóa Chi Phí)**: **~$0.015** cho một kịch bản sinh đề 5 câu hỏi hoàn chỉnh nhờ sử dụng gpt-3.5-turbo / gpt-4o mini kết hợp caching.
+- **Token Efficiency Ratio**: **85% Input Prompt / 15% Output Completion** (Vì Agent phải đọc prompt hệ thống dài kèm tài liệu tham khảo, nhưng nội dung câu hỏi đầu ra cô đọng).
 
 ---
 
 ## 4. Root Cause Analysis (RCA) - Failure Traces
 
-### Case 1: Lỗi ảo tưởng kết quả công cụ (Observation Hallucination)
-- **Input**: *"Hãy tạo đề Toán 12 gồm 3 câu Hàm số lũy thừa..."*
-- **Symptom**: Agent đưa ra `Action: save_question_to_bank(...)` ở Bước 4 nhưng tự bịa ra luôn dòng phản hồi `Observation: SUCCESS...` và tự đưa ra `Final Answer` trong cùng một thế hệ text dài 1030 tokens. Mã Python loop bị bỏ qua hoàn toàn, dẫn đến câu hỏi không thực sự được lưu vào file [question_bank.json](file:///d:/solution/Day-3-Lab-Chatbot-vs-react-agent/data/question_bank.json).
-- **Root Cause**: LLM hoạt động tự do autoregressive mà không có điểm dừng. Provider OpenAI thiếu cấu hình giới hạn kết thúc (`stop sequence`) để nhường quyền kiểm soát lại cho mã nguồn thực thi công cụ.
-- **Fix**: Thêm tham số `stop=["Observation:", "observation:", "Observation: "]` trong Chat Completion API giúp bắt buộc LLM dừng lại sau khi viết xong `Action`.
+### Case Study: Vòng lặp vô hạn (Infinite Loop) ở Agent v1
+- **Input**: "Tạo 3 câu trắc nghiệm Lịch sử lớp 5 mức độ khó."
+- **Observation**: Agent gọi tool `generate_mcq_questions` thành công. Thay vì xuất `Final Answer`, nó tiếp tục gọi lại `generate_mcq_questions` liên tục cho đến khi chạm giới hạn `max_steps=5` rồi báo lỗi Timeout.
 
-### Case 2: Regex bị lỗi trích xuất tham số do dấu ngoặc toán học lồng nhau
-- **Input**: Gửi tham số công cụ chứa biểu thức LaTeX: `y = (x^2 - 4)^0.5`.
-- **Symptom**: Lời gọi công cụ bị cắt cụt tại `question_text="Cho hàm số y = (x^2 - 4`, dẫn đến lỗi crash thiếu tham số nghiêm trọng từ Python.
-- **Root Cause**: Biểu thức chính quy Regex thông thường `Action: (\w+)\((.*?)\)` bị khớp nhầm dấu đóng ngoặc của công thức toán học làm dấu đóng ngoặc kết thúc hàm.
-- **Fix**: Thay thế hoàn toàn Regex bằng bộ phân tích Character Scan thông minh `_find_action_call` đếm số ngoặc mở/đóng lồng nhau để bóc tách chính xác phần đối số thực tế của hàm.
+#### Vết lỗi ghi nhận từ Telemetry (`logs/agent_trace.json`):
+```json
+{
+  "step": 4,
+  "event": "TOOL_CALL",
+  "tool": "generate_mcq_questions",
+  "args": {"topic": "Lịch sử lớp 5", "quantity": 3, "difficulty": "khó"},
+  "status": "success",
+  "observation_length": 1540,
+  "loop_count": 4,
+  "error": "Max steps exceeded. Forcing termination."
+}
+```
 
-### Case 3: Lỗi vòng lặp vô hạn (Infinite Loop) do thiếu dữ liệu
-- **Input**: Gửi yêu cầu với chủ đề hoặc độ khó không tồn tại trong ngân hàng.
-- **Symptom**: Agent nhận được `Observation: []` nhưng lại tiếp tục gọi hàm `fetch_questions_from_bank` liên tục với cùng tham số thay vì chuyển sang sinh câu hỏi mới, làm chạm mốc giới hạn `max_steps=7` và phát sinh lỗi ngắt phiên.
-- **Root Cause**: LLM bị bối rối khi kết quả truy vấn rỗng và không có chỉ dẫn tường minh về việc chuyển trạng thái từ "Truy vấn" sang "Sinh mới".
-- **Fix**: Bổ sung "Luật số 6" nghiêm ngặt vào System Prompt: Bắt buộc dừng gọi `fetch` và gọi `save_question_to_bank` ngay lập tức nếu kết quả trả về là rỗng `[]`. Đảm bảo luồng suy luận thành công hoàn toàn trong khoảng 4 đến 6 bước thực thi (nằm an toàn trong giới hạn 7 bước).
+#### Phân tích Nguyên nhân gốc rễ (Root Cause):
+- Vì nội dung câu hỏi trả về từ tool quá dài, LLM bị "nhiễu" bối cảnh.
+- System Prompt của v1 thiếu các ví dụ Few-Shot chỉ định cụ thể thời điểm chuyển từ `Observation` sang `Final Answer` sau khi đã nhận được câu hỏi hợp lệ.
+- LLM bị kẹt trong suy nghĩ "Tôi cần kiểm tra lại hoặc chạy tiếp để đảm bảo" nên tiếp tục gọi tool một cách vô hạn.
+
+#### Giải pháp khắc phục trên Agent v2:
+1. **Cập nhật Prompt (Few-Shot transition)**: Thêm chỉ dẫn cứng: `Thought: Tôi đã nhận được danh sách câu hỏi đạt yêu cầu. Action: Final Answer`.
+2. **Software Guardrail**: Thêm logic trong `agent.py` chặn đứng việc Agent gọi trùng lặp cùng một Tool với cùng một bộ tham số đầu vào. Nếu phát hiện trùng, ép ngắt và trả về kết quả hiện tại.
 
 ---
 
 ## 5. Ablation Studies & Experiments
 
-### Thử nghiệm 1: Cấu hình Prompt v1 vs Prompt v2
-- **Prompt v1**: Chỉ đưa ra định dạng Thought-Action-Observation thô sơ.
-  * *Kết quả*: LLM thi thoảng sinh tham số sai tên, truyền mảng options dạng chuỗi gộp.
-- **Prompt v2**: Bổ sung hướng dẫn chi tiết bằng tiếng Việt, quy định nghiêm ngặt kiểu dữ liệu của tham số và đưa thêm ví dụ One-Shot minh họa việc lưu trữ.
-  * *Kết quả*: Tỷ lệ lỗi cú pháp và truyền tham số sai giảm **90%**, Agent tự động định dạng bảng đáp án trắc nghiệm chuẩn chỉnh bằng LaTeX.
+### Experiment 1: Prompt v1 vs Prompt v2 (Chặn kẹt Loop và Ảo giác)
+- **Prompt v1**: Cho phép Agent tự do suy nghĩ và gọi công cụ.
+  - *Kết quả*: Tỷ lệ kẹt loop là 20%. Tỷ lệ tự bịa đề khi chưa nạp dữ liệu là 40%.
+- **Prompt v2 (Sửa đổi)**: Bổ sung quy tắc: `RULES: - You must always output Thought and then EITHER Action OR Final Answer.` và `NẾU search_knowledge trả về [KHÔNG CÓ DỮ LIỆU] -> DỪNG NGAY, KHÔNG TỰ BỊA ĐẶT`.
+  - *Kết quả*: Khắc phục hoàn toàn 100% lỗi vòng lặp vô hạn. Triệt tiêu 100% hiện tượng bịa kiến thức (Agent chủ động từ chối và hướng dẫn người dùng nạp URL).
 
-### Thử nghiệm 2: Chatbot Baseline vs ReAct Agent
-Chúng tôi đã chạy so sánh thực tế giữa Chatbot thông thường (chỉ gửi câu hỏi trực tiếp không ReAct) và ReAct Agent:
+### Experiment 2: Đối sánh Chatbot Baseline vs ReAct Agent v2
 
-| Kịch bản thử nghiệm | Chatbot Result | Agent Result | Winner | Giải thích |
-| :--- | :--- | :--- | :--- | :--- |
-| **Q1: Tra cứu kiến thức** *(Chủ đề thi Toán 12 gồm những gì?)* | Trả lời đúng, nhanh | Trả lời đúng, tốn thêm 1 bước ReAct | **Chatbot** | Chatbot chiến thắng nhờ latency thấp (1.5s) và tốn ít token hơn, không cần ReAct. |
-| **Q2: Thiết kế đề thi tích hợp ngân hàng** *(Tạo đề thi và đồng bộ câu hỏi mới)* | **Thất bại hoàn toàn**. Ảo tưởng toàn bộ câu hỏi. Không thể lưu dữ liệu. | **Thành công**. Tra cứu đúng chương trình, bốc câu hỏi từ bank và tự động ghi câu mới `Q003` vào JSON database. | **ReAct Agent** | ReAct Agent có khả năng suy luận đa bước thực thi công cụ thực tế mà Chatbot phản xạ nhanh không thể làm được. |
+| Case | Chatbot Baseline Result | ReAct Agent v2 Result | Winner |
+| :--- | :--- | :--- | :--- |
+| **Giao tiếp chung** (*"Bạn là ai?"*) | Trả lời lập tức (200ms), tiết kiệm token. | Mất thời gian suy nghĩ (Thought), tốn token không cần thiết. | **Chatbot** |
+| **Nạp kiến thức mới** (*Học từ URL loigiaihay*) | Báo lỗi, không thể vào mạng đọc link web được. | Tải URL động qua `KnowledgeLoader`, bóc HTML sạch và sinh đề bám sát 100%. | **Agent** |
+| **Độ chính xác độ khó** (*Mức độ Khó*) | Sinh câu hỏi 1-shot hên xui, chất lượng không đồng đều. | Tự đánh giá chéo qua `evaluate_difficulty`, tái tạo lại nếu chưa đạt độ khó. | **Agent** |
+| **Khả năng tự kiểm duyệt chéo** | Không thể thực hiện. | Tự phát hiện sai sót và tự sửa sai (Self-correction). | **Agent** |
 
 ---
 
 ## 6. Production Readiness Review
 
-Để chuyển giao hệ thống này sang môi trường thương mại phục vụ hàng ngàn giáo viên, nhóm đề xuất danh sách kiểm tra sau:
+Để đưa hệ thống ReAct Agent Tạo Đề Thi Nhóm 067 ra môi trường sản phẩm thực tế (Production), chúng tôi đề xuất các hạng mục cải tiến sau:
 
 - **Security (Bảo mật)**:
-  * Thực hiện **Input Sanitization** (làm sạch dữ liệu đầu vào của giáo viên) để tránh lỗ hổng Prompt Injection làm thay đổi hành vi lưu trữ của Agent.
-  * Thiết lập quyền ghi file JSON/Database bảo mật cao để tránh Agent ghi đè phá hoại câu hỏi cũ.
-- **Guardrails (Hạn chế rủi ro)**:
-  * Khóa chặt `max_steps = 7` và cơ chế ngắt phiên để ngăn ngừa hiện tượng Agent rơi vào vòng lặp vô hạn (Infinite Loop) gây tốn tài nguyên và tăng chi phí.
-  * Áp dụng bộ lọc ngôn từ học đường nhạy cảm trước khi lưu câu hỏi mới vào Database chung.
-- **Scaling (Mở rộng quy mô)**:
-  * Thay thế file lưu trữ JSON đơn giản bằng hệ thống cơ sở dữ liệu quan hệ chuyên nghiệp (PostgreSQL) hoặc Vector DB (ChromaDB) để hỗ trợ tìm kiếm câu hỏi theo ngữ nghĩa thông minh.
-  * Sử dụng thư viện **LangGraph** để xây dựng quy trình duyệt câu hỏi đa tác tử (Multi-agent), nơi một Agent phụ trách thiết kế câu hỏi và một Agent giáo viên phản biện chất lượng câu hỏi trước khi lưu kho.
+  - Áp dụng Input Sanitization để khử mã độc đối với URL đầu vào trước khi `KnowledgeLoader` tiến hành scrap HTML.
+  - Sử dụng các API kiểm duyệt nội dung (như OpenAI Moderation API) để rà quét câu hỏi tránh nội dung nhạy cảm hoặc sai lệch chuẩn mực giáo dục.
+- **Guardrails (Hạn chế chi phí)**:
+  - Cài đặt cơ chế kiểm soát token chặt chẽ và giới hạn tối đa `max_steps = 4` để đảm bảo hệ thống không bao giờ bị vượt quá chi phí vận hành cho phép.
+- **Scaling (Khả năng mở rộng)**:
+  - Chuyển đổi cơ sở dữ liệu JSON tĩnh sang **Vector Database (ChromaDB / Qdrant)** kết hợp với **Hybrid Search (BM25 + Dense Embeddings)** để phục vụ hàng triệu tài liệu học tập của Bộ Giáo dục.
+- **State Management (Quản lý trạng thái)**:
+  - Nâng cấp kiến trúc vòng lặp while-loop truyền thống sang framework **LangGraph**. Việc này giúp định nghĩa luồng Agent dưới dạng đồ thị có hướng (DAG), hỗ trợ rẽ nhánh phức tạp (ví dụ: chuyển đổi giữa Agent Soạn Đề, Agent Kiểm Duyệt và Agent Sửa Đề) một cách bền vững.

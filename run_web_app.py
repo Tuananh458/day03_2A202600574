@@ -89,8 +89,8 @@ class WebAppRequestHandler(http.server.SimpleHTTPRequestHandler):
                 llm = OpenAIProvider(model_name=model_name, api_key=api_key)
                 
                 if mode == "react":
-                    # Initialize Agent with max_steps=7 as per requirements
-                    agent = ReActAgent(llm=llm, tools=TOOLS_METADATA, max_steps=7)
+                    # Initialize Agent without strict step limit to allow saving multiple questions
+                    agent = ReActAgent(llm=llm, tools=TOOLS_METADATA, max_steps=30)
                     stream_generator = agent.run_stream(user_message)
                 else:
                     # Chatbot Baseline

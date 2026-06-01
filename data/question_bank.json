@@ -78,5 +78,101 @@
     ],
     "correct_answer": "A",
     "explanation": "Vì lực kéo về liên hệ với li độ theo công thức F = -kx, đồ thị là đường thẳng đi qua gốc tọa độ với hệ số góc -k."
+  },
+  {
+    "id": "Q006",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Easy",
+    "question_text": "Chu kỳ con lắc đơn phụ thuộc vào?",
+    "options": [
+      "A. Biên độ góc",
+      "B. Chiều dài dây treo",
+      "C. Khối lượng vật nặng",
+      "D. Nhiệt độ môi trường"
+    ],
+    "correct_answer": "B",
+    "explanation": "Chu kỳ con lắc đơn T = 2π√(l/g) không phụ thuộc khối lượng và biên độ góc."
+  },
+  {
+    "id": "Q007",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Easy",
+    "question_text": "Công thức tính tần số góc của con lắc đơn là",
+    "options": [
+      "A. ω = √(k/m)",
+      "B. ω = √(g/l)",
+      "C. ω = √(l/g)",
+      "D. ω = 2π√(l/g)"
+    ],
+    "correct_answer": "B",
+    "explanation": "Tần số góc ω = √(g/l) là công thức chuẩn cho con lắc đơn."
+  },
+  {
+    "id": "Q008",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Easy",
+    "question_text": "Khi biên độ góc nhỏ, dao động của con lắc đơn được coi là dao động",
+    "options": [
+      "A. Tuần hoàn",
+      "B. Điều hòa",
+      "C. Tắt dần",
+      "D. Cưỡng bức"
+    ],
+    "correct_answer": "B",
+    "explanation": "Với biên độ góc nhỏ, sinθ ≈ θ, lực hồi phục tỉ lệ với li độ nên dao động điều hòa."
+  },
+  {
+    "id": "Q009",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Easy",
+    "question_text": "Trong các đại lượng sau, đại lượng nào KHÔNG ảnh hưởng đến chu kỳ con lắc đơn?",
+    "options": [
+      "A. Chiều dài dây treo",
+      "B. Gia tốc trọng trường",
+      "C. Khối lượng vật nặng",
+      "D. Cả B và C"
+    ],
+    "correct_answer": "C",
+    "explanation": "Chu kỳ T = 2π√(l/g) không phụ thuộc khối lượng vật nặng."
+  },
+  {
+    "id": "Q010",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Medium",
+    "question_text": "Nếu tăng chiều dài con lắc đơn lên gấp 4 lần thì chu kỳ dao động nhỏ thay đổi như thế nào?",
+    "options": [
+      "A. Tăng 2 lần",
+      "B. Tăng 4 lần",
+      "C. Giảm 2 lần",
+      "D. Không đổi"
+    ],
+    "correct_answer": "A",
+    "explanation": "Chu kỳ T tỉ lệ với √l, khi l tăng 4 lần thì T tăng √4 = 2 lần."
+  },
+  {
+    "id": "Q011",
+    "grade": 10,
+    "subject": "Vật lý",
+    "topic": "Con lắc đơn",
+    "difficulty": "Medium",
+    "question_text": "Nếu tăng chiều dài con lắc đơn lên gấp 4 lần thì chu kỳ dao động nhỏ thay đổi như thế nào?",
+    "options": [
+      "A. Tăng 2 lần",
+      "B. Tăng 4 lần",
+      "C. Giảm 2 lần",
+      "D. Không đổi"
+    ],
+    "correct_answer": "A",
+    "explanation": "Chu kỳ T tỉ lệ với √l, khi l tăng 4 lần thì T tăng √4 = 2 lần."
   }
 ]

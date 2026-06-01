@@ -46,7 +46,7 @@ class OpenAIProvider(LLMProvider):
                 model=self.model_name,
                 messages=messages,
                 stream=True,
-                max_tokens=4096,
+                max_tokens=8192,
                 stop=["Observation:", "observation:", "Observation: "]
             )
 
@@ -147,7 +147,7 @@ class OpenAIProvider(LLMProvider):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
-                max_tokens=4096,
+                max_tokens=8192,
                 stop=["Observation:", "observation:", "Observation: "]
             )
             msg = response.choices[0].message
@@ -205,7 +205,7 @@ class OpenAIProvider(LLMProvider):
                 model=self.model_name,
                 messages=messages,
                 stream=True,
-                max_tokens=4096,
+                max_tokens=8192,
                 stop=["Observation:", "observation:", "Observation: "]
             )
 
